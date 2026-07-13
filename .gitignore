@@ -131,6 +131,7 @@ celerybeat.pid
 .env
 .venv
 .venv/
+.gigacode/
 *.pyc
 env/
 venv/
