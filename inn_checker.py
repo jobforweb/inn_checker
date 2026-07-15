@@ -13,10 +13,18 @@ sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='repla
 import requests
 import time
 import logging
+import re
+import os
 from typing import Optional
 
 LOG_FORMAT = "%(asctime)s | %(levelname)-8s | %(message)s"
 DATE_FORMAT = "%H:%M:%S"
+
+LOG_TO_CONSOLE = True
+LOG_TO_FILE = True
+
+ANSI_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
+
 
 class Colors:
     GREEN = "\033[92m"
@@ -26,11 +34,29 @@ class Colors:
     RESET = "\033[0m"
     BOLD = "\033[1m"
 
+
+class StripAnsiFormatter(logging.Formatter):
+    def format(self, record):
+        record.msg = ANSI_PATTERN.sub("", record.getMessage())
+        return super().format(record)
+
+
+_handlers = []
+if LOG_TO_CONSOLE:
+    _console = logging.StreamHandler()
+    _console.setFormatter(logging.Formatter(LOG_FORMAT, datefmt=DATE_FORMAT))
+    _handlers.append(_console)
+if LOG_TO_FILE:
+    _log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "log")
+    os.makedirs(_log_dir, exist_ok=True)
+    _log_path = os.path.join(_log_dir, "inn_checker.log")
+    _file = logging.FileHandler(_log_path, encoding="utf-8")
+    _file.setFormatter(StripAnsiFormatter(LOG_FORMAT, datefmt=DATE_FORMAT))
+    _handlers.append(_file)
+
 logging.basicConfig(
     level=logging.INFO,
-    format=LOG_FORMAT,
-    datefmt=DATE_FORMAT,
-    handlers=[logging.StreamHandler()]
+    handlers=_handlers
 )
 logger = logging.getLogger(__name__)
 

@@ -132,6 +132,8 @@ celerybeat.pid
 .venv
 .venv/
 .gigacode/
+log/
+lv_extension
 *.pyc
 env/
 venv/
